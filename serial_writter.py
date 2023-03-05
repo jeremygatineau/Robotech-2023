@@ -2,10 +2,10 @@ import serial, time
 
 arduino = serial.Serial('COM9', 115200, timeout=.1)
 
-time.sleep(1)
+time.sleep(0.5)
 
 arduino.write(b"aqq")
-time.sleep(0.5)
+time.sleep(0.2)
 # while True:
 #     
 #     print(arduino.write('hello'.encode('utf-8')))
@@ -28,11 +28,4 @@ def signal(sig):
     arduino.write(sigstr.encode('utf-8'))
  
 
-signal((1,1, 1, 0))
-time.sleep(0.5)
-signal((0,0,0, 0))
-time.sleep(0.5)
-signal((-1,1,1, 0))
-time.sleep(0.5)
-signal((1,1,0, 0))
-
+signal((0, 0, 0, 0))

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 # capture frames from a camera
-ip_front = 'http://192.168.30.4:4747/mjpegfeed?640x480'
+ip_front = 'http://192.168.227.245:4747/mjpegfeed?640x480'
 cap = cv2.VideoCapture(ip_front)
 
 img = None

@@ -6,6 +6,7 @@ from enum import Enum
 
 import serial, time
 import numpy as np
+import keyboard
 
 arduino = serial.Serial('COM9', 115200, timeout=.1)
 
@@ -53,10 +54,10 @@ def signal(sig):
 # eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
 # capture frames from a camera
-ip_front = 'http://192.168.30.4:4747/mjpegfeed?640x480'
+ip_front = 'http://192.168.227.245:4747/mjpegfeed?640x480'
 ip_back = 'http://192.168.30.213:4747/mjpegfeed?640x480'
 ip_side = 'http://192.168.30.188:4747/mjpegfeed?640x480'
-rate = 10
+rate = 5
 
 img = None
 count = 0
@@ -69,7 +70,7 @@ while True:
 			continue
 	elif curr_mode == Mode.FIND_PERSON:
 		cap = cv2.VideoCapture(ip_front)
-		signal((1, -1, 0, 0))
+		signal((1, 0, 0, 1))
 		time.sleep(0.5)
 		while True:
 			ret, new_img = cap.read()
@@ -92,10 +93,13 @@ while True:
 				)
 				print(rejectLevels)
 				print(levelWeights)
-
+				if len(levelWeights) == 0: continue
+    
+				signal((0, 0, 0, 0))
+				time.sleep(0.5)
 				index_max = np.argmax(levelWeights)
 
-				if levelWeights[index_max] < 6:
+				if levelWeights[index_max] < 5:
 					continue
 
 				font = cv2.FONT_ITALIC
@@ -115,10 +119,10 @@ while True:
 				cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,0),2)
 
 				if x + w/2 > 240 + center_thresh:
-					signal((1, -1, 0, 0))
+					signal((1, 0 , 0, 0))
 					time.sleep(0.5)
 				elif x + w/2 < 240 - center_thresh:
-					signal((-1, 1, 0, 0))
+					signal((0, 1, 0, 0))
 					time.sleep(0.5)
 				else:
 					curr_mode = Mode.MOVE_TO_PERSON

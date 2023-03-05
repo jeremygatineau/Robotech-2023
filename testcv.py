@@ -70,6 +70,7 @@ while True:
 	elif curr_mode == Mode.FIND_PERSON:
 		cap = cv2.VideoCapture(ip_front)
 		signal((1, -1, 0, 0))
+		time.sleep(0.5)
 		while True:
 			ret, new_img = cap.read()
 			if count % rate == 0:
@@ -91,7 +92,18 @@ while True:
 				)
 				print(rejectLevels)
 				print(levelWeights)
-				
+
+				index_max = np.argmax(levelWeights)
+
+				if levelWeights[index_max] < 6:
+					continue
+
+				font = cv2.FONT_ITALIC
+				x, y, w, h = bodies[index_max]
+				cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,255),2)
+				font = cv2.FONT_HERSHEY_SIMPLEX
+				#cv2.putText(image,str(i)+str(":")+str(np.log(levelWeights[i][0])),(x,y), font,0.5,(255,255,255),2,cv2.LINE_AA)
+				cv2.putText(img,str(levelWeights[index_max]),(x,y), font,0.5,(255,255,255),2,cv2.LINE_AA)
 				# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
 				# if len(faces) > 0:
 				# 	signal((0, 0, 0, 0))
@@ -100,12 +112,14 @@ while True:
 				# 	if w * h > max_w * max_h:
 				# 		max_x, max_y, max_w, max_h = (x, y, w, h)
 
-				cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
+				cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,0),2)
 
 				if x + w/2 > 240 + center_thresh:
 					signal((1, -1, 0, 0))
+					time.sleep(0.5)
 				elif x + w/2 < 240 - center_thresh:
 					signal((-1, 1, 0, 0))
+					time.sleep(0.5)
 				else:
 					curr_mode = Mode.MOVE_TO_PERSON
 					cap.release()
@@ -115,6 +129,7 @@ while True:
 	elif curr_mode== Mode.LOOK_FOR_BALL:
 		cap = cv2.VideoCapture(ip_back)
 		signal((1, -1, 0, 0))
+		time.sleep(0.5)
 		while True:
 			ret, new_img = cap.read()
 			if count % rate == 0:
@@ -128,6 +143,7 @@ while True:
 				faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
 				if len(faces) > 0:
 					signal((0, 0, 0, 0))
+					time.sleep(0.5)
 				max_x, max_y, max_w, max_h = (0, 0, 0, 0)
 				for (x,y,w,h) in faces:
 					if w * h > max_w * max_h:
@@ -137,8 +153,10 @@ while True:
 
 				if x + w/2 > 240 + center_thresh:
 					signal((1, -1, 0, 0))
+					time.sleep(0.5)
 				elif x + w/2 < 240 - center_thresh:
 					signal((-1, 1, 0, 0))
+					time.sleep(0.5)
 				else:
 					curr_mode = Mode.MOVE_TO_BALL
 					cap.release()

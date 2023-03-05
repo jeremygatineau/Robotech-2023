@@ -65,122 +65,116 @@ center_thresh = 20
 curr_mode = Mode.FIND_PERSON
 
 while True:
-	match curr_mode:
-		case Mode.NOTHING:
+	if curr_mode == Mode.NOTHING:
 			continue
-		case Mode.FIND_PERSON:
-			cap = cv2.VideoCapture(ip_front)
-			signal((1, -1, 0, 0))
-			while True:
-				ret, new_img = cap.read()
-				if count % rate == 0:
-					img = new_img
-					img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+	elif curr_mode == Mode.FIND_PERSON:
+		cap = cv2.VideoCapture(ip_front)
+		signal((1, -1, 0, 0))
+		while True:
+			ret, new_img = cap.read()
+			if count % rate == 0:
+				img = new_img
+				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
-					# convert to gray scale of each frames
-					gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+				# convert to gray scale of each frames
+				gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-					# Detects faces of different sizes in the input image
-					bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
-						img,
-						scaleFactor=1.1,
-						minNeighbors=20,
-						minSize=(24, 24),
-						# maxSize=(96,96),
-						flags = cv2.CASCADE_SCALE_IMAGE,
-						outputRejectLevels = True
-					)
-					print(rejectLevels)
-					print(levelWeights)
+				# Detects faces of different sizes in the input image
+				bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
+					img,
+					scaleFactor=1.1,
+					minNeighbors=20,
+					minSize=(24, 24),
+					# maxSize=(96,96),
+					flags = cv2.CASCADE_SCALE_IMAGE,
+					outputRejectLevels = True
+				)
+				print(rejectLevels)
+				print(levelWeights)
+				
+				# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
+				# if len(faces) > 0:
+				# 	signal((0, 0, 0, 0))
+				# max_x, max_y, max_w, max_h = (0, 0, 0, 0)
+				# for (x,y,w,h) in faces:
+				# 	if w * h > max_w * max_h:
+				# 		max_x, max_y, max_w, max_h = (x, y, w, h)
 
-					if len(levelWeights) == 0:
-						continue
+				cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
 
-					index_min = np.argmin(levelWeights)
-					
-					# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
-					# if len(faces) > 0:
-					# 	signal((0, 0, 0, 0))
-					# max_x, max_y, max_w, max_h = (0, 0, 0, 0)
-					# for (x,y,w,h) in faces:
-					# 	if w * h > max_w * max_h:
-					# 		max_x, max_y, max_w, max_h = (x, y, w, h)
+				if x + w/2 > 240 + center_thresh:
+					signal((1, -1, 0, 0))
+				elif x + w/2 < 240 - center_thresh:
+					signal((-1, 1, 0, 0))
+				else:
+					curr_mode = Mode.MOVE_TO_PERSON
+					cap.release()
+					break
+			count += 1
+		continue
+	elif curr_mode== Mode.LOOK_FOR_BALL:
+		cap = cv2.VideoCapture(ip_back)
+		signal((1, -1, 0, 0))
+		while True:
+			ret, new_img = cap.read()
+			if count % rate == 0:
+				img = new_img
+				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
-					cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
+				# Detects faces of different sizes in the input image
+				blurred = cv2.GaussianBlur(img, (11, 11), 0)
+				hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-					if x + w/2 > 240 + center_thresh:
-						signal((1, -1, 0, 0))
-					elif x + w/2 < 240 - center_thresh:
-						signal((-1, 1, 0, 0))
-					else:
-						curr_mode = Mode.MOVE_TO_PERSON
-						cap.release()
-						break
-				count += 1
-			continue
-		case Mode.LOOK_FOR_BALL:
-			cap = cv2.VideoCapture(ip_back)
-			signal((1, -1, 0, 0))
-			while True:
-				ret, new_img = cap.read()
-				if count % rate == 0:
-					img = new_img
-					img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+				faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
+				if len(faces) > 0:
+					signal((0, 0, 0, 0))
+				max_x, max_y, max_w, max_h = (0, 0, 0, 0)
+				for (x,y,w,h) in faces:
+					if w * h > max_w * max_h:
+						max_x, max_y, max_w, max_h = (x, y, w, h)
 
-					# Detects faces of different sizes in the input image
-					blurred = cv2.GaussianBlur(img, (11, 11), 0)
-					hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+				cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
 
-					faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
-					if len(faces) > 0:
-						signal((0, 0, 0, 0))
-					max_x, max_y, max_w, max_h = (0, 0, 0, 0)
-					for (x,y,w,h) in faces:
-						if w * h > max_w * max_h:
-							max_x, max_y, max_w, max_h = (x, y, w, h)
-
-					cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
-
-					if x + w/2 > 240 + center_thresh:
-						signal((1, -1, 0, 0))
-					elif x + w/2 < 240 - center_thresh:
-						signal((-1, 1, 0, 0))
-					else:
-						curr_mode = Mode.MOVE_TO_BALL
-						cap.release()
-						break
-				count += 1
-			continue
-		case Mode.MOVE_TO_PERSON:
-			signal((1, 1, 0, 0))
-			time.sleep(5) #modify this to go forward
-			signal((1, -1, 0, 0)) # spin 180 degrees
-			time.sleep(0.5)
-			signal((0, 0, 0, -1)) # drop ball
-			time.sleep(0.5)
-			signal((1, 1, 0, 0)) # go for a bit
-			time.sleep(0.5)
-			signal((1, -1, 0, 0)) # turn around 180
-			time.sleep(1)
-			signal((0, 0, 1, 0))
-			time.sleep(10)
-			signal((0, 0, 0, 0))
-			curr_mode = Mode.LOOK_FOR_BALL
-			continue
-		case Mode.MOVE_TO_BALL:
-			signal((1, 1, 0, 1))
-			time.sleep(5) #modify this to go forward until we hit ball
-			signal((0, 0, 0, 0))
-			time.sleep(0.5)
-			signal((1, -1, 0, 0)) #turn around 180
-			time.sleep(1) 
-			signal((1, 1, 0, 0))
-			time.sleep(5) # go back the same amount of time 
-			signal((0, 0, 0, 0))
-			curr_mode = Mode.FIND_PERSON
-			continue
-		case Mode.SIDE_TO_SIDE:
-			continue
+				if x + w/2 > 240 + center_thresh:
+					signal((1, -1, 0, 0))
+				elif x + w/2 < 240 - center_thresh:
+					signal((-1, 1, 0, 0))
+				else:
+					curr_mode = Mode.MOVE_TO_BALL
+					cap.release()
+					break
+			count += 1
+		continue
+	elif curr_mode == Mode.MOVE_TO_PERSON:
+		signal((1, 1, 0, 0))
+		time.sleep(5) #modify this to go forward
+		signal((1, -1, 0, 0)) # spin 180 degrees
+		time.sleep(0.5)
+		signal((0, 0, 0, -1)) # drop ball
+		time.sleep(0.5)
+		signal((1, 1, 0, 0)) # go for a bit
+		time.sleep(0.5)
+		signal((1, -1, 0, 0)) # turn around 180
+		time.sleep(1)
+		signal((0, 0, 1, 0))
+		time.sleep(10)
+		signal((0, 0, 0, 0))
+		curr_mode = Mode.LOOK_FOR_BALL
+		continue
+	elif curr_mode == Mode.MOVE_TO_BALL:
+		signal((1, 1, 0, 1))
+		time.sleep(5) #modify this to go forward until we hit ball
+		signal((0, 0, 0, 0))
+		time.sleep(0.5)
+		signal((1, -1, 0, 0)) #turn around 180
+		time.sleep(1) 
+		signal((1, 1, 0, 0))
+		time.sleep(5) # go back the same amount of time 
+		signal((0, 0, 0, 0))
+		curr_mode = Mode.FIND_PERSON
+		continue
+	elif curr_mode == Mode.SIDE_TO_SIDE:
+		continue
 
 # while cap.isOpened():
 # 	match 

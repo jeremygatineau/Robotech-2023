@@ -89,7 +89,7 @@ rate = 5
 img = None
 count = 0
 close_area_threshold = 400
-center_thresh = 20
+center_thresh = 30
 curr_mode = Mode.FIND_PERSON
 
 while True:
@@ -122,12 +122,18 @@ while True:
 				print(levelWeights)
 				if len(levelWeights) == 0: continue
     
-				signal((0, 0, 0, 0))
-				time.sleep(0.5)
+				
+
+
 				index_max = np.argmax(levelWeights)
 
 				if levelWeights[index_max] < 5:
 					continue
+ 
+				signal((-1, 0, 0, 0))
+				time.sleep(0.2)
+				signal((0, 0, 0, 0))
+				time.sleep(0.5)
 
 				font = cv2.FONT_ITALIC
 				x, y, w, h = bodies[index_max]
@@ -146,11 +152,16 @@ while True:
 				cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,0),2)
 
 				if x + w/2 > 240 + center_thresh:
-					signal((1, 0 , 0, 0))
-					time.sleep(0.5)
+					signal((-1, 0 , 0, 0))
+					time.sleep(0.4)
+					signal((0, 0 , 0, 0))
+					time.sleep(0.4)
+     
 				elif x + w/2 < 240 - center_thresh:
-					signal((0, 1, 0, 0))
-					time.sleep(0.5)
+					signal((1, 0 , 0, 0))
+					time.sleep(0.4)
+					signal((0, 0 , 0, 0))
+					time.sleep(0.4)
 				else:
 					curr_mode = Mode.MOVE_TO_PERSON
 					break
@@ -183,10 +194,10 @@ while True:
 
 				if x + w/2 > 240 + center_thresh:
 					signal((1, -1, 0, 0))
-					time.sleep(0.5)
+					time.sleep(1)
 				elif x + w/2 < 240 - center_thresh:
 					signal((-1, 1, 0, 0))
-					time.sleep(0.5)
+					time.sleep(1)
 				else:
 					curr_mode = Mode.MOVE_TO_BALL
 					break
@@ -194,18 +205,13 @@ while True:
 		continue
 	elif curr_mode == Mode.MOVE_TO_PERSON:
 		signal((1, 1, 0, 0))
-		time.sleep(5) #modify this to go forward
-		signal((1, -1, 0, 0)) # spin 180 degrees
-		time.sleep(0.5)
-		signal((0, 0, 0, -1)) # drop ball
-		time.sleep(0.5)
-		signal((1, 1, 0, 0)) # go for a bit
-		time.sleep(0.5)
-		signal((1, -1, 0, 0)) # turn around 180
-		time.sleep(1)
+		time.sleep(3) #modify this to go forward
+		signal((-1, -1, 0, -1)) # go for a bit
+		time.sleep(3)
 		signal((0, 0, 1, 0))
 		time.sleep(10)
 		signal((0, 0, 0, 0))
+		time.sleep(1)
 		curr_mode = Mode.LOOK_FOR_BALL
 		continue
 	elif curr_mode == Mode.MOVE_TO_BALL:

@@ -1,9 +1,35 @@
 import cv2
 import numpy as np
+import queue, threading, time
+
+# bufferless VideoCapture
+class VideoCapture:
+
+  def __init__(self, name):
+    self.cap = cv2.VideoCapture(name)
+    self.q = queue.Queue()
+    t = threading.Thread(target=self._reader)
+    t.daemon = True
+    t.start()
+
+  # read frames as soon as they are available, keeping only most recent one
+  def _reader(self):
+    while True:
+      ret, frame = self.cap.read()
+      if not ret:
+        break
+      if not self.q.empty():
+        try:
+          self.q.get_nowait()   # discard previous (unprocessed) frame
+        except queue.Empty:
+          pass
+      self.q.put(frame)
+
+  def read(self):
+    return self.q.get()
 # capture frames from a camera
 ip_front = 'http://192.168.227.245:4747/mjpegfeed?640x480'
-cap = cv2.VideoCapture(ip_front)
-
+cap = VideoCapture(ip_front)
 img = None
 count = 0
 rate = 10
@@ -16,29 +42,30 @@ highBlue = 73
 lowBlue = 0
 lowGreen = 17
 highGreen = 88
-while cap.isOpened():
-    ret, new_img = cap.read()
+while True:
+    img = cap.read()
+    time.sleep(.5)
+    img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    # if count % rate == 0:
 
-    if count % rate == 0:
+    #     img = new_img
+    #     img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
-        img = new_img
-        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-
-        lower = np.array([lowRed,lowGreen,lowBlue])
-        upper = np.array([highRed,highGreen,highBlue])
+    #     lower = np.array([lowRed,lowGreen,lowBlue])
+    #     upper = np.array([highRed,highGreen,highBlue])
         
         
-        mask = cv2.inRange(img, lower, upper)
-        mask = cv2.erode(mask, None, iterations=2)
-        mask = cv2.dilate(mask, None, iterations=2)
-        img = cv2.bitwise_and(img,img, mask= mask)
-        contours, heirarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        if len(contours) == 0:
-            continue
-        blob = max(contours, key=lambda el: cv2.contourArea(el))
-        M = cv2.moments(blob)
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        cv2.circle(img, center, 2, (255,255,0), -1)
+    #     mask = cv2.inRange(img, lower, upper)
+    #     mask = cv2.erode(mask, None, iterations=2)
+    #     mask = cv2.dilate(mask, None, iterations=2)
+    #     img = cv2.bitwise_and(img,img, mask= mask)
+    #     contours, heirarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    #     if len(contours) == 0:
+    #         continue
+    #     blob = max(contours, key=lambda el: cv2.contourArea(el))
+    #     M = cv2.moments(blob)
+    #     center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+    #     cv2.circle(img, center, 2, (255,255,0), -1)
         # contours, hierarchy = cv2.findContours(image=img, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
         # cv2.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
         # circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT_ALT, dp=1.5, minDist=150, param2=0.8)

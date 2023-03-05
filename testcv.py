@@ -6,7 +6,34 @@ from enum import Enum
 
 import serial, time
 import numpy as np
-import keyboard
+# import keyboard
+
+import queue, threading, time
+
+class VideoCapture:
+
+  def __init__(self, name):
+    self.cap = cv2.VideoCapture(name)
+    self.q = queue.Queue()
+    t = threading.Thread(target=self._reader)
+    t.daemon = True
+    t.start()
+
+  # read frames as soon as they are available, keeping only most recent one
+  def _reader(self):
+    while True:
+      ret, frame = self.cap.read()
+      if not ret:
+        break
+      if not self.q.empty():
+        try:
+          self.q.get_nowait()   # discard previous (unprocessed) frame
+        except queue.Empty:
+          pass
+      self.q.put(frame)
+
+  def read(self):
+    return self.q.get()
 
 arduino = serial.Serial('COM9', 115200, timeout=.1)
 
@@ -69,11 +96,11 @@ while True:
 	if curr_mode == Mode.NOTHING:
 			continue
 	elif curr_mode == Mode.FIND_PERSON:
-		cap = cv2.VideoCapture(ip_front)
+		cap = VideoCapture(ip_front)
 		signal((1, 0, 0, 1))
 		time.sleep(0.5)
 		while True:
-			ret, new_img = cap.read()
+			new_img = cap.read()
 			if count % rate == 0:
 				img = new_img
 				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
@@ -126,16 +153,15 @@ while True:
 					time.sleep(0.5)
 				else:
 					curr_mode = Mode.MOVE_TO_PERSON
-					cap.release()
 					break
 			count += 1
 		continue
 	elif curr_mode== Mode.LOOK_FOR_BALL:
-		cap = cv2.VideoCapture(ip_back)
+		cap = VideoCapture(ip_back)
 		signal((1, -1, 0, 0))
 		time.sleep(0.5)
 		while True:
-			ret, new_img = cap.read()
+			new_img = cap.read()
 			if count % rate == 0:
 				img = new_img
 				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
@@ -163,7 +189,6 @@ while True:
 					time.sleep(0.5)
 				else:
 					curr_mode = Mode.MOVE_TO_BALL
-					cap.release()
 					break
 			count += 1
 		continue

@@ -229,30 +229,41 @@ while True:
 				# convert to gray scale of each frames
 				gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+
+				faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+				xm, ym, wm, hm = (0, 0, 0, 0)
+				maxa = 0
+				for (x,y,w,h) in faces:
+					if w * h > maxa:
+						xm, ym, wm, hm = (x, y, w, h)
+					# To draw a rectangle in a face 
+					cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,0),2) 
+					roi_gray = gray[y:y+h, x:x+w]
+					roi_color = img[y:y+h, x:x+w]
 				# Detects faces of different sizes in the input image
-				bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
-					img,
-					scaleFactor=1.1,
-					minNeighbors=20,
-					minSize=(24, 24),
-					# maxSize=(96,96),
-					flags = cv2.CASCADE_SCALE_IMAGE,
-					outputRejectLevels = True
-				)
-				print(rejectLevels)
-				print(levelWeights)
-				if len(levelWeights) == 0: continue
+				# bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
+				# 	img,
+				# 	scaleFactor=1.1,
+				# 	minNeighbors=20,
+				# 	minSize=(24, 24),
+				# 	# maxSize=(96,96),
+				# 	flags = cv2.CASCADE_SCALE_IMAGE,
+				# 	outputRejectLevels = True
+				# )
+				# print(rejectLevels)
+				# print(levelWeights)
+				# if len(levelWeights) == 0: continue
     
-				index_max = np.argmax(levelWeights)
+				# index_max = np.argmax(levelWeights)
 
-				if levelWeights[index_max] < 5:
-					continue
+				# if levelWeights[index_max] < 5:
+				# 	continue
 
-				x, y, w, h = bodies[index_max]
-				if x + w/2 > 240:
+				# x, y, w, h = bodies[index_max]
+				if xm + wm/2 > 240:
 					signal((1, 1 , 0, 0))
 					time.sleep(0.2)
-				elif x + w/2 < 240:
+				elif xm + wm/2 < 240:
 					signal((-1, -1, 0, 0))
 					time.sleep(0.2)
 			count += 1

@@ -84,7 +84,7 @@ def signal(sig):
 ip_front = 'http://192.168.227.245:4747/mjpegfeed?640x480'
 ip_back = 'http://192.168.30.213:4747/mjpegfeed?640x480'
 ip_side = 'http://192.168.30.188:4747/mjpegfeed?640x480'
-rate = 5
+rate = 1
 
 img = None
 count = 0
@@ -94,7 +94,7 @@ curr_mode = Mode.FIND_PERSON
 
 while True:
 	if curr_mode == Mode.NOTHING:
-			continue
+		continue
 	elif curr_mode == Mode.FIND_PERSON:
 		cap = VideoCapture(ip_front)
 		signal((1, 0, 0, 1))
@@ -129,22 +129,7 @@ while True:
 				if levelWeights[index_max] < 5:
 					continue
 
-				font = cv2.FONT_ITALIC
 				x, y, w, h = bodies[index_max]
-				cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,255),2)
-				font = cv2.FONT_HERSHEY_SIMPLEX
-				#cv2.putText(image,str(i)+str(":")+str(np.log(levelWeights[i][0])),(x,y), font,0.5,(255,255,255),2,cv2.LINE_AA)
-				cv2.putText(img,str(levelWeights[index_max]),(x,y), font,0.5,(255,255,255),2,cv2.LINE_AA)
-				# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
-				# if len(faces) > 0:
-				# 	signal((0, 0, 0, 0))
-				# max_x, max_y, max_w, max_h = (0, 0, 0, 0)
-				# for (x,y,w,h) in faces:
-				# 	if w * h > max_w * max_h:
-				# 		max_x, max_y, max_w, max_h = (x, y, w, h)
-
-				cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,0),2)
-
 				if x + w/2 > 240 + center_thresh:
 					signal((1, 0 , 0, 0))
 					time.sleep(0.5)
@@ -155,7 +140,6 @@ while True:
 					curr_mode = Mode.MOVE_TO_PERSON
 					break
 			count += 1
-		continue
 	elif curr_mode== Mode.LOOK_FOR_BALL:
 		cap = VideoCapture(ip_back)
 		signal((1, -1, 0, 0))
@@ -191,7 +175,6 @@ while True:
 					curr_mode = Mode.MOVE_TO_BALL
 					break
 			count += 1
-		continue
 	elif curr_mode == Mode.MOVE_TO_PERSON:
 		signal((1, 1, 0, 0))
 		time.sleep(5) #modify this to go forward
@@ -207,7 +190,6 @@ while True:
 		time.sleep(10)
 		signal((0, 0, 0, 0))
 		curr_mode = Mode.LOOK_FOR_BALL
-		continue
 	elif curr_mode == Mode.MOVE_TO_BALL:
 		signal((1, 1, 0, 1))
 		time.sleep(5) #modify this to go forward until we hit ball
@@ -219,10 +201,46 @@ while True:
 		time.sleep(5) # go back the same amount of time 
 		signal((0, 0, 0, 0))
 		curr_mode = Mode.FIND_PERSON
-		continue
 	elif curr_mode == Mode.SIDE_TO_SIDE:
-		continue
+		cap = VideoCapture(ip_side)
+		while True:
+			new_img = cap.read()
+			if count % rate == 0:
+				img = new_img
+				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
+				# convert to gray scale of each frames
+				gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+				# Detects faces of different sizes in the input image
+				bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
+					img,
+					scaleFactor=1.1,
+					minNeighbors=20,
+					minSize=(24, 24),
+					# maxSize=(96,96),
+					flags = cv2.CASCADE_SCALE_IMAGE,
+					outputRejectLevels = True
+				)
+				print(rejectLevels)
+				print(levelWeights)
+				if len(levelWeights) == 0: continue
+    
+				index_max = np.argmax(levelWeights)
+
+				if levelWeights[index_max] < 5:
+					continue
+
+				x, y, w, h = bodies[index_max]
+				if x + w/2 > 240:
+					signal((1, 0 , 0, 0))
+					time.sleep(0.5)
+				elif x + w/2 < 240:
+					signal((0, 1, 0, 0))
+					time.sleep(0.5)
+				else:
+			count += 1
+		continue
 # while cap.isOpened():
 # 	match 
 # 	

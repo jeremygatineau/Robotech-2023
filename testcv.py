@@ -3,7 +3,15 @@
 # where its functionality resides
 import cv2
 from enum import Enum
-import time
+
+import serial, time
+
+arduino = serial.Serial('COM9', 115200, timeout=.1)
+
+time.sleep(1)
+
+arduino.write(b"aqq")
+time.sleep(0.5)
 
 # load the required trained XML classifiers
 # https://github.com/Itseez/opencv/blob/master/
@@ -26,7 +34,17 @@ class Mode(Enum):
 
 # (left_motor, right_motor, drop_ball, open_lid)
 def signal(sig):
-	return
+    sigstr = ""
+    sigstr += "0"
+    for sig_ in sig:
+        if sig_ == 1:
+            sigstr += "+"
+        elif sig_ == 0:
+            sigstr += "."
+        elif sig_==-1:
+            sigstr += "-"
+    sigstr += "1"
+    arduino.write(sigstr.encode('utf-8'))
 
 # https://github.com/Itseez/opencv/blob/master
 # /data/haarcascades/haarcascade_eye.xml
@@ -65,13 +83,25 @@ while True:
 					gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 					# Detects faces of different sizes in the input image
-					faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
-					if len(faces) > 0:
-						signal((0, 0, 0, 0))
-					max_x, max_y, max_w, max_h = (0, 0, 0, 0)
-					for (x,y,w,h) in faces:
-						if w * h > max_w * max_h:
-							max_x, max_y, max_w, max_h = (x, y, w, h)
+					bodies,rejectLevels, levelWeights = face_cascade.detectMultiScale3(
+						img,
+						scaleFactor=1.1,
+						minNeighbors=20,
+						minSize=(24, 24),
+						# maxSize=(96,96),
+						flags = cv2.CASCADE_SCALE_IMAGE,
+						outputRejectLevels = True
+					)
+					print(rejectLevels)
+					print(levelWeights)
+					
+					# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
+					# if len(faces) > 0:
+					# 	signal((0, 0, 0, 0))
+					# max_x, max_y, max_w, max_h = (0, 0, 0, 0)
+					# for (x,y,w,h) in faces:
+					# 	if w * h > max_w * max_h:
+					# 		max_x, max_y, max_w, max_h = (x, y, w, h)
 
 					cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
 

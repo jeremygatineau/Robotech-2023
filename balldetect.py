@@ -10,31 +10,12 @@ rate = 10
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-track = False
 highRed = 166
-def onHighRedChange(value):
-    global highRed
-    highRed = value
 lowRed = 99
-def onLowRedChange(value):
-    global lowRed
-    lowRed = value
 highBlue = 73
-def onHighBlueChange(value):
-    global highBlue
-    highBlue = value
 lowBlue = 0
-def onLowBlueChange(value):
-    global lowBlue
-    lowBlue = value
 lowGreen = 17
-def onLowGreenChange(value):
-    global lowGreen
-    lowGreen = value
 highGreen = 88
-def onHighGreenChange(value):
-    global highGreen
-    highGreen = value
 while cap.isOpened():
     ret, new_img = cap.read()
 
@@ -111,15 +92,6 @@ while cap.isOpened():
     #     #         cv2.rectangle(img, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
 
     cv2.imshow('img',img)
-
-    # if not track:
-    #     track = True
-    #     cv2.createTrackbar('lowRed', 'img', 0, 255, onLowRedChange)
-    #     cv2.createTrackbar('highRed', 'img', 0, 255, onHighRedChange)
-    #     cv2.createTrackbar('lowGreen', 'img', 0, 255, onLowGreenChange)
-    #     cv2.createTrackbar('highGreen', 'img', 0, 255, onHighGreenChange)
-    #     cv2.createTrackbar('lowBlue', 'img', 0, 255, onLowBlueChange)
-    #     cv2.createTrackbar('highBlue', 'img', 0, 255, onHighBlueChange)
 
     cv2.waitKey(1)
 

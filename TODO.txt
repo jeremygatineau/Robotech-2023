@@ -1,12 +1,6 @@
 
 TODO:
     - Github merge
-    - Battery
-    - wire servos for feeder
-    - add third motor to signal
-    - add servo to signal 
-    - tidy wiring
-    - test 3 cameras
     - write outline for motor control
     - then fill it out
     - PID on image center
@@ -17,6 +11,5 @@ TODO:
         - present cv
         - present buisness
 
-    - create devpost 
-    -
+    - create devpost
     O - sense shot made

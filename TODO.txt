@@ -1,0 +1,15 @@
+
+TODO:
+    - Github merge
+    - write outline for motor control
+    - then fill it out
+    - PID on image center
+    - make both videos
+    - do slides
+        - present body
+        - present elcetrical
+        - present cv
+        - present buisness
+
+    - create devpost
+    O - sense shot made

@@ -22,26 +22,17 @@ def signal(sig):
             sigstr += "+"
         elif sig_ == 0:
             sigstr += "."
-        else:
+        elif sig_==-1:
             sigstr += "-"
     sigstr += "1"
-    sigstr += "   "
     arduino.write(sigstr.encode('utf-8'))
  
-for i in range(20):   
-    signal((1, -1))
-    for i in range(5):
-        print(arduino.readline())
-    time.sleep(0.1)
-    signal((-1, -1))
-    for i in range(5):
-        print(arduino.readline())
-    time.sleep(0.1)
-    signal((1, 1))
-    for i in range(5):
-        print(arduino.readline())
-    time.sleep(0.1)
 
-signal((0,0))
-
+signal((1,1, 1, 0))
+time.sleep(0.5)
+signal((0,0,0, 0))
+time.sleep(0.5)
+signal((-1,1,1, 0))
+time.sleep(0.5)
+signal((1,1,0, 0))
 

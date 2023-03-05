@@ -170,6 +170,9 @@ while True:
 				if len(contours) == 0:
 					continue
 				blob = max(contours, key=lambda el: cv2.contourArea(el))
+				if cv2.contourArea(blob) < 5:
+					print('test')
+					continue
 				M = cv2.moments(blob)
 				center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 

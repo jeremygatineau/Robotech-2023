@@ -190,11 +190,7 @@ while True:
 				if center[0] > 240 + center_thresh:
 					signal((1, -1, 0, 0))
 					time.sleep(1)
-<<<<<<< HEAD
 				elif center[0] < 240 - center_thresh:
-=======
-				elif x + w/2 < 240 - center_thresh:
->>>>>>> bc10f993e2d67a297bccaad99d4ef2081e453285
 					signal((-1, 1, 0, 0))
 					time.sleep(1)
 				else:

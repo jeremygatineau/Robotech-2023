@@ -5,6 +5,7 @@ import cv2
 from enum import Enum
 
 import serial, time
+import numpy as np
 
 arduino = serial.Serial('COM9', 115200, timeout=.1)
 
@@ -55,9 +56,6 @@ def signal(sig):
 ip_front = 'http://192.168.30.4:4747/mjpegfeed?640x480'
 ip_back = 'http://192.168.30.213:4747/mjpegfeed?640x480'
 ip_side = 'http://192.168.30.188:4747/mjpegfeed?640x480'
-# cap1 = cv2.VideoCapture()
-# cap2 = cv2.VideoCapture()
-# cap3 = cv2.VideoCapture()
 rate = 10
 
 img = None
@@ -94,6 +92,11 @@ while True:
 					)
 					print(rejectLevels)
 					print(levelWeights)
+
+					if len(levelWeights) == 0:
+						continue
+
+					index_min = np.argmin(levelWeights)
 					
 					# faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
 					# if len(faces) > 0:

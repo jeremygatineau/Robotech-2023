@@ -89,7 +89,7 @@ rate = 1
 img = None
 count = 0
 close_area_threshold = 400
-center_thresh = 20
+center_thresh = 30
 curr_mode = Mode.FIND_PERSON
 
 highRed = 166
@@ -129,20 +129,31 @@ while True:
 				print(levelWeights)
 				if len(levelWeights) == 0: continue
     
-				signal((0, 0, 0, 0))
-				time.sleep(0.5)
+				
+
+
 				index_max = np.argmax(levelWeights)
 
 				if levelWeights[index_max] < 5:
 					continue
+ 
+				signal((-1, 0, 0, 0))
+				time.sleep(0.2)
+				signal((0, 0, 0, 0))
+				time.sleep(0.5)
 
 				x, y, w, h = bodies[index_max]
 				if x + w/2 > 240 + center_thresh:
-					signal((1, 0 , 0, 0))
-					time.sleep(0.5)
+					signal((-1, 0 , 0, 0))
+					time.sleep(0.4)
+					signal((0, 0 , 0, 0))
+					time.sleep(0.4)
+     
 				elif x + w/2 < 240 - center_thresh:
-					signal((0, 1, 0, 0))
-					time.sleep(0.5)
+					signal((1, 0 , 0, 0))
+					time.sleep(0.4)
+					signal((0, 0 , 0, 0))
+					time.sleep(0.4)
 				else:
 					curr_mode = Mode.MOVE_TO_PERSON
 					break
@@ -179,7 +190,11 @@ while True:
 				if center[0] > 240 + center_thresh:
 					signal((1, -1, 0, 0))
 					time.sleep(1)
+<<<<<<< HEAD
 				elif center[0] < 240 - center_thresh:
+=======
+				elif x + w/2 < 240 - center_thresh:
+>>>>>>> bc10f993e2d67a297bccaad99d4ef2081e453285
 					signal((-1, 1, 0, 0))
 					time.sleep(1)
 				else:
@@ -188,18 +203,13 @@ while True:
 			count += 1
 	elif curr_mode == Mode.MOVE_TO_PERSON:
 		signal((1, 1, 0, 0))
-		time.sleep(5) #modify this to go forward
-		signal((1, -1, 0, 0)) # spin 180 degrees
-		time.sleep(0.5)
-		signal((0, 0, 0, -1)) # drop ball
-		time.sleep(0.5)
-		signal((1, 1, 0, 0)) # go for a bit
-		time.sleep(0.5)
-		signal((1, -1, 0, 0)) # turn around 180
-		time.sleep(1)
+		time.sleep(3) #modify this to go forward
+		signal((-1, -1, 0, -1)) # go for a bit
+		time.sleep(3)
 		signal((0, 0, 1, 0))
 		time.sleep(10)
 		signal((0, 0, 0, 0))
+		time.sleep(1)
 		curr_mode = Mode.LOOK_FOR_BALL
 	elif curr_mode == Mode.MOVE_TO_BALL:
 		signal((1, 1, 0, 1))

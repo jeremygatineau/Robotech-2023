@@ -82,15 +82,15 @@ def signal(sig):
 
 # capture frames from a camera
 ip_front = 'http://192.168.227.245:4747/mjpegfeed?640x480'
-ip_back = 'http://192.168.30.213:4747/mjpegfeed?640x480'
-ip_side = 'http://192.168.30.188:4747/mjpegfeed?640x480'
+ip_back = 'http://192.168.227.213:4747/mjpegfeed?640x480'
+ip_side = 'http://192.168.227.188:4747/mjpegfeed?640x480'
 rate = 1
 
 img = None
 count = 0
 close_area_threshold = 400
 center_thresh = 30
-curr_mode = Mode.FIND_PERSON
+curr_mode = Mode.SIDE_TO_SIDE
 
 highRed = 166
 lowRed = 99
@@ -104,7 +104,7 @@ while True:
 		continue
 	elif curr_mode == Mode.FIND_PERSON:
 		cap = VideoCapture(ip_front)
-		signal((1, 0, 0, 1))
+		signal((1, -1, 0, 1))
 		time.sleep(0.5)
 		while True:
 			new_img = cap.read()
@@ -137,20 +137,20 @@ while True:
 				if levelWeights[index_max] < 5:
 					continue
  
-				signal((-1, 0, 0, 0))
+				signal((-1, 1, 0, 0))
 				time.sleep(0.2)
 				signal((0, 0, 0, 0))
 				time.sleep(0.5)
 
 				x, y, w, h = bodies[index_max]
 				if x + w/2 > 240 + center_thresh:
-					signal((-1, 0 , 0, 0))
+					signal((1, -1 , 0, 0))
 					time.sleep(0.4)
 					signal((0, 0 , 0, 0))
 					time.sleep(0.4)
      
 				elif x + w/2 < 240 - center_thresh:
-					signal((1, 0 , 0, 0))
+					signal((-1, 1 , 0, 0))
 					time.sleep(0.4)
 					signal((0, 0 , 0, 0))
 					time.sleep(0.4)
@@ -166,7 +166,7 @@ while True:
 			new_img = cap.read()
 			if count % rate == 0:
 				img = new_img
-				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+				img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
 				# Detects faces of different sizes in the input image
 				lower = np.array([lowRed,lowGreen,lowBlue])

@@ -92,6 +92,13 @@ close_area_threshold = 400
 center_thresh = 20
 curr_mode = Mode.FIND_PERSON
 
+highRed = 166
+lowRed = 99
+highBlue = 73
+lowBlue = 0
+lowGreen = 17
+highGreen = 88
+
 while True:
 	if curr_mode == Mode.NOTHING:
 		continue
@@ -151,26 +158,27 @@ while True:
 				img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
 				# Detects faces of different sizes in the input image
-				blurred = cv2.GaussianBlur(img, (11, 11), 0)
-				hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+				lower = np.array([lowRed,lowGreen,lowBlue])
+				upper = np.array([highRed,highGreen,highBlue])
+        
+        
+				mask = cv2.inRange(img, lower, upper)
+				mask = cv2.erode(mask, None, iterations=2)
+				mask = cv2.dilate(mask, None, iterations=2)
+				img = cv2.bitwise_and(img,img, mask= mask)
+				contours, heirarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+				if len(contours) == 0:
+					continue
+				blob = max(contours, key=lambda el: cv2.contourArea(el))
+				M = cv2.moments(blob)
+				center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-				faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30), flags =cv2.CASCADE_SCALE_IMAGE)
-				if len(faces) > 0:
-					signal((0, 0, 0, 0))
-					time.sleep(0.5)
-				max_x, max_y, max_w, max_h = (0, 0, 0, 0)
-				for (x,y,w,h) in faces:
-					if w * h > max_w * max_h:
-						max_x, max_y, max_w, max_h = (x, y, w, h)
-
-				cv2.rectangle(img,(max_x,max_y),(max_x+max_w,max_y+max_h),(255,255,0),2)
-
-				if x + w/2 > 240 + center_thresh:
+				if center[0] > 240 + center_thresh:
 					signal((1, -1, 0, 0))
-					time.sleep(0.5)
-				elif x + w/2 < 240 - center_thresh:
+					time.sleep(1)
+				elif center[0] < 240 - center_thresh:
 					signal((-1, 1, 0, 0))
-					time.sleep(0.5)
+					time.sleep(1)
 				else:
 					curr_mode = Mode.MOVE_TO_BALL
 					break
@@ -233,12 +241,11 @@ while True:
 
 				x, y, w, h = bodies[index_max]
 				if x + w/2 > 240:
-					signal((1, 0 , 0, 0))
-					time.sleep(0.5)
+					signal((1, 1 , 0, 0))
+					time.sleep(0.2)
 				elif x + w/2 < 240:
-					signal((0, 1, 0, 0))
-					time.sleep(0.5)
-				else:
+					signal((-1, -1, 0, 0))
+					time.sleep(0.2)
 			count += 1
 		continue
 # while cap.isOpened():
